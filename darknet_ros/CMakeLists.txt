@@ -21,13 +21,7 @@ if (CUDA_FOUND)
     CUDA_NVCC_FLAGS
     ${CUDA_NVCC_FLAGS};
     -O3
-    -gencode arch=compute_20,code=[sm_20,sm_21]
-    -gencode arch=compute_30,code=sm_30
-    -gencode arch=compute_35,code=sm_35
-    -gencode arch=compute_50,code=[sm_50,compute_50]
-    -gencode arch=compute_52,code=[sm_52,compute_52]
-    -gencode arch=compute_61,code=sm_61
-    -gencode arch=compute_62,code=sm_62
+    -gencode arch=compute_53,code=[sm_53,compute_53]
   )
   add_definitions(-DGPU)
 else()
@@ -229,39 +223,3 @@ install(
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
   FILES_MATCHING PATTERN "*.h"
 )
-
-# Download tiny-yolo-voc.weights
-set(PATH "${CMAKE_CURRENT_SOURCE_DIR}/yolo_network_config/weights")
-set(FILE "${PATH}/tiny-yolo-voc.weights")
-message(STATUS "Checking and downloading tiny-yolo-voc.weights if needed ...")
-if (NOT EXISTS "${FILE}")
-  message(STATUS "... file does not exist. Downloading now ...")
-  execute_process(COMMAND wget http://pjreddie.com/media/files/tiny-yolo-voc.weights -P ${PATH})
-endif()
-
-#############
-## Testing ##
-#############
-
-if(CATKIN_ENABLE_TESTING)
-  # Download yolo-voc.weights
-  set(PATH "${CMAKE_CURRENT_SOURCE_DIR}/yolo_network_config/weights")
-  set(FILE "${PATH}/yolo-voc.weights")
-  message(STATUS "Checking and downloading yolo-voc.weights if needed ...")
-  if (NOT EXISTS "${FILE}")
-    message(STATUS "... file does not exist. Downloading now ...")
-    execute_process(COMMAND wget http://pjreddie.com/media/files/yolo-voc.weights -P ${PATH})
-  endif()
-
-  find_package(rostest REQUIRED)
-
-  # Object detection in images.
-  add_rostest_gtest(${PROJECT_NAME}_object_detection-test
-    test/object_detection.test
-    test/test_main.cpp
-    test/ObjectDetection.cpp
-  )
-  target_link_libraries(${PROJECT_NAME}_object_detection-test
-    ${catkin_LIBRARIES}
-  )
-endif()
