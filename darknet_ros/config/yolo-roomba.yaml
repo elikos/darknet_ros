@@ -1,0 +1,11 @@
+yolo_model:
+
+  config_file:
+    name: roomba-yolo.cfg
+  weight_file:
+    name: roomba-yolo.weights
+  threshold:
+    value: 0.5
+  detection_classes:
+    names:
+      - roomba

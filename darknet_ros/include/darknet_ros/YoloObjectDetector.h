@@ -23,6 +23,7 @@
 #include <sensor_msgs/Image.h>
 #include <geometry_msgs/Point.h>
 #include <image_transport/image_transport.h>
+#include <nodelet/nodelet.h>
 
 // OpenCv
 #include <opencv2/imgproc/imgproc.hpp>
@@ -38,16 +39,16 @@
 namespace darknet_ros {
 
 //! Bounding box of the detected object.
-typedef struct {
-  float x, y, w, h, prob;
-  int num, Class;
-} RosBox_;
+    typedef struct {
+        float x, y, w, h, prob;
+        int num, Class;
+    } RosBox_;
 
 /*!
  * Run YOLO and detect obstacles.
  * @param[out] bounding box.
  */
-extern "C" RosBox_ *demo_yolo();
+    extern "C" RosBox_ *demo_yolo();
 
 /*!
  * Initialize darknet network of yolo.
@@ -56,133 +57,138 @@ extern "C" RosBox_ *demo_yolo();
  * @param[in] datafile location of darknet's data file.
  * @param[in] thresh threshold of the object detection (0 < thresh < 1).
  */
-extern "C" void load_network_demo(char *cfgfile, char *weightfile, char *datafile,
-                                  float thresh,
-                                  char **names, int classes,
-                                  bool viewimage, int waitkeydelay,
-                                  int frame_skip,
-                                  float hier,
-                                  int w, int h, int frames, int fullscreen,
-                                  bool enableConsoleOutput);
+    extern "C" void load_network_demo(char *cfgfile, char *weightfile, char *datafile,
+                                      float thresh,
+                                      char **names, int classes,
+                                      bool viewimage, int waitkeydelay,
+                                      int frame_skip,
+                                      float hier,
+                                      int w, int h, int frames, int fullscreen,
+                                      bool enableConsoleOutput);
 
 /*!
  * This function is called in yolo and allows YOLO to receive the ROS image.
  * @param[out] current image of the camera.
  */
-IplImage* get_ipl_image(void);
+    IplImage* get_ipl_image(void);
 
-class YoloObjectDetector
-{
- public:
-  /*!
-   * Constructor.
-   */
-  explicit YoloObjectDetector(ros::NodeHandle nh);
+    class YoloObjectDetector : public nodelet::Nodelet
+    {
+    public:
+        /*!
+         * Constructor.
+         */
+        YoloObjectDetector();
 
-  /*!
-   * Destructor.
-   */
-  ~YoloObjectDetector();
+        /*!
+         * Destructor.
+         */
+        ~YoloObjectDetector() override;
 
- private:
-  /*!
-   * Reads and verifies the ROS parameters.
-   * @return true if successful.
-   */
-  bool readParameters();
+    private:
+        /*!
+         * Reads and verifies the ROS parameters.
+         * @return true if successful.
+         */
+        bool readParameters();
 
-  /*!
-   * Initialize the ROS connections.
-   */
-  void init();
+        /*!
+         * Initialize the ROS connections.
+         */
+        void init();
 
-  /*!
-   * Draws the bounding boxes of the detected objects.
-   * @param[in] inputFrame image of current camera frame.
-   * @param[in] rosBoxes vector of detected bounding boxes of specific class.
-   * @param[in] numberOfObjects number of objects of specific class.
-   * @param[in] rosBoxColor color of specific class.
-   * @param[in] objectLabel name of detected class.
-   */
-  void drawBoxes(cv::Mat &inputFrame, std::vector<RosBox_> &rosBoxes, int &numberOfObjects,
-      cv::Scalar &rosBoxColor, const std::string &objectLabel);
+        /*!
+         * Nodelet onInit override
+         */
+        void onInit() override;
 
-  /*!
-   * Run YOLO and detect obstacles.
-   * @param[in] fullFrame image of current camera frame.
-   */
-  void runYolo(cv::Mat &fullFrame, const std_msgs::Header& header, int id = 0);
+        /*!
+         * Draws the bounding boxes of the detected objects.
+         * @param[in] inputFrame image of current camera frame.
+         * @param[in] rosBoxes vector of detected bounding boxes of specific class.
+         * @param[in] numberOfObjects number of objects of specific class.
+         * @param[in] rosBoxColor color of specific class.
+         * @param[in] objectLabel name of detected class.
+         */
+        void drawBoxes(cv::Mat &inputFrame, std::vector<RosBox_> &rosBoxes, int &numberOfObjects,
+                       cv::Scalar &rosBoxColor, const std::string &objectLabel);
 
-  /*!
-   * Callback of camera.
-   * @param[in] msg image pointer.
-   */
-  void cameraCallback(const sensor_msgs::ImageConstPtr& msg);
+        /*!
+         * Run YOLO and detect obstacles.
+         * @param[in] fullFrame image of current camera frame.
+         */
+        void runYolo(cv::Mat &fullFrame, const std_msgs::Header& header, int id = 0);
 
-  /*!
-   * Check for objects action goal callback.
-   */
-  void checkForObjectsActionGoalCB();
+        /*!
+         * Callback of camera.
+         * @param[in] msg image pointer.
+         */
+        void cameraCallback(const sensor_msgs::ImageConstPtr& msg);
 
-  /*!
-   * Check for objects action preempt callback.
-   */
-  void checkForObjectsActionPreemptCB();
+        /*!
+         * Check for objects action goal callback.
+         */
+        void checkForObjectsActionGoalCB();
 
-  /*!
-   * Check if a preempt for the check for objects action has been requested.
-   * @return false if preempt has been requested or inactive.
-   */
-  bool isCheckingForObjects() const;
+        /*!
+         * Check for objects action preempt callback.
+         */
+        void checkForObjectsActionPreemptCB();
 
-  /*!
-   * Publishes the detection image.
-   * @return true if successful.
-   */
-  bool publishDetectionImage(const cv::Mat& detectionImage);
+        /*!
+         * Check if a preempt for the check for objects action has been requested.
+         * @return false if preempt has been requested or inactive.
+         */
+        bool isCheckingForObjects() const;
 
-  //! Typedefs.
-  typedef actionlib::SimpleActionServer<darknet_ros_msgs::CheckForObjectsAction> CheckForObjectsActionServer;
-  typedef std::shared_ptr<CheckForObjectsActionServer> CheckForObjectsActionServerPtr;
+        /*!
+         * Publishes the detection image.
+         * @return true if successful.
+         */
+        bool publishDetectionImage(const cv::Mat& detectionImage);
 
-  //! ROS node handle.
-  ros::NodeHandle nodeHandle_;
+        //! Typedefs.
+        typedef actionlib::SimpleActionServer<darknet_ros_msgs::CheckForObjectsAction> CheckForObjectsActionServer;
+        typedef std::shared_ptr<CheckForObjectsActionServer> CheckForObjectsActionServerPtr;
 
-  //! Class labels.
-  int numClasses_;
-  std::vector<std::string> classLabels_;
+        //! ROS node handle.
+        ros::NodeHandle nodeHandle_;
 
-  //! Check for objects action server.
-  CheckForObjectsActionServerPtr checkForObjectsActionServer_;
+        //! Class labels.
+        int numClasses_;
+        std::vector<std::string> classLabels_;
 
-  //! Advertise and subscribe to image topics.
-  image_transport::ImageTransport imageTransport_;
+        //! Check for objects action server.
+        CheckForObjectsActionServerPtr checkForObjectsActionServer_;
 
-  //! ROS subscriber and publisher.
-  image_transport::Subscriber imageSubscriber_;
-  ros::Publisher objectPublisher_;
-  ros::Publisher boundingBoxesPublisher_;
+        //! Advertise and subscribe to image topics.
+        image_transport::ImageTransport imageTransport_ = image_transport::ImageTransport(ros::NodeHandle());
 
-  //! Detected objects.
-  std::vector< std::vector<RosBox_> > rosBoxes_;
-  std::vector<int> rosBoxCounter_;
-  std::vector<cv::Scalar> rosBoxColors_;
-  darknet_ros_msgs::BoundingBoxes boundingBoxesResults_;
-  RosBox_* boxes_;
+        //! ROS subscriber and publisher.
+        image_transport::Subscriber imageSubscriber_;
+        ros::Publisher objectPublisher_;
+        ros::Publisher boundingBoxesPublisher_;
 
-  //! Camera related parameters.
-  int frameWidth_;
-  int frameHeight_;
+        //! Detected objects.
+        std::vector< std::vector<RosBox_> > rosBoxes_;
+        std::vector<int> rosBoxCounter_;
+        std::vector<cv::Scalar> rosBoxColors_;
+        darknet_ros_msgs::BoundingBoxes boundingBoxesResults_;
+        RosBox_* boxes_;
 
-  //! Image view in opencv.
-  const std::string opencvWindow_;
-  bool viewImage_;
-  int waitKeyDelay_;
-  bool darknetImageViewer_;
-  bool enableConsoleOutput_;
+        //! Camera related parameters.
+        int frameWidth_;
+        int frameHeight_;
 
-  //! Publisher of the bounding box image.
-  ros::Publisher detectionImagePublisher_;
-};
+        //! Image view in opencv.
+        const std::string opencvWindow_;
+        bool viewImage_;
+        int waitKeyDelay_;
+        bool darknetImageViewer_;
+        bool enableConsoleOutput_;
+
+        //! Publisher of the bounding box image.
+        ros::Publisher detectionImagePublisher_;
+    };
 
 } /* namespace darknet_ros*/
