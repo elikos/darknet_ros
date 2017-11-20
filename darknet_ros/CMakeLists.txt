@@ -151,10 +151,6 @@ if (CUDA_FOUND)
           ${catkin_LIBRARIES}
           )
 
-  cuda_add_executable(${PROJECT_NAME}
-          src/yolo_object_detector_node.cpp
-          )
-
 else()
 
   add_library(${PROJECT_NAME}_lib
