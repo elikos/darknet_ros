@@ -190,8 +190,8 @@ namespace darknet_ros {
 
         imageSubscriber_ = imageTransport_.subscribe(cameraTopicName, cameraQueueSize, &YoloObjectDetector::cameraCallback,this);
         objectPublisher_ = nodeHandle_.advertise<std_msgs::Int8>(objectDetectorTopicName, objectDetectorQueueSize, objectDetectorLatch);
-        boundingBoxesPublisher_ = nodeHandle_.advertise<darknet_ros_msgs::BoundingBoxes>(boundingBoxesTopicName, boundingBoxesQueueSize, boundingBoxesLatch);
-        positionsAndProbabilitiesPublisher_ = nodeHandle_.advertise<detection_msgs::Positions_and_probabilities>(positionsAndProbabilitiesTopicName, positionsAndProbabilitiesQueueSize, positionsAndProbabilitiesLatch);
+        boundingBoxesPublisher_ = nodeHandle_.advertise<elikos_msgs::BoundingBoxArray>(boundingBoxesTopicName, boundingBoxesQueueSize, boundingBoxesLatch);
+        positionsAndProbabilitiesPublisher_ = nodeHandle_.advertise<elikos_msgs::PositionAndProbabilityArray>(positionsAndProbabilitiesTopicName, positionsAndProbabilitiesQueueSize, positionsAndProbabilitiesLatch);
         detectionImagePublisher_ = nodeHandle_.advertise<sensor_msgs::Image>(detectionImageTopicName, detectionImageQueueSize, detectionImageLatch);
 
         // Action servers.
@@ -224,8 +224,9 @@ namespace darknet_ros {
 
     void YoloObjectDetector::drawBoxes(cv::Mat &inputFrame, std::vector<RosBox_> &rosBoxes, int &numberOfObjects,
                                        cv::Scalar &rosBoxColor, const std::string &objectLabel) {
-        darknet_ros_msgs::BoundingBox boundingBox;
+        elikos_msgs::BoundingBox boundingBox;
 
+        elikos_msgs::PositionAndProbability positionAndProbability;
         geometry_msgs::Point32 point;
 
         for (int i = 0; i < numberOfObjects; i++) {
@@ -242,13 +243,15 @@ namespace darknet_ros {
             boundingBox.ymax = ymax;
             boundingBoxesResults_.boundingBoxes.push_back(boundingBox);
 
-            //detection_msg
+            //PositionAndProbabilityArray
             point.x = rosBoxes[i].x * frameWidth_;
             point.x = rosBoxes[i].y * frameHeight_;
             point.z = 0;
 
-            positionsAndProbabilities_.positions.push_back(point);
-            positionsAndProbabilities_.probabilities.push_back(rosBoxes[i].prob);
+            positionAndProbability.position = point;
+            positionAndProbability.probability = rosBoxes[i].prob;
+
+            positionsAndProbabilities_.positionsAndProbabilities.push_back(positionAndProbability);
 
             // draw bounding box of first object found
             cv::Point topLeftCorner = cv::Point(xmin, ymin);
@@ -321,7 +324,7 @@ namespace darknet_ros {
         }
         if (isCheckingForObjects()) {
             ROS_DEBUG("[YoloObjectDetector] check for objects in image.");
-            darknet_ros_msgs::CheckForObjectsResult objectsActionResult;
+            elikos_msgs::CheckForObjectsResult objectsActionResult;
             objectsActionResult.id = id;
             objectsActionResult.boundingBoxes = boundingBoxesResults_;
             checkForObjectsActionServer_->setSucceeded(objectsActionResult,"Send bounding boxes.");
@@ -371,7 +374,7 @@ namespace darknet_ros {
             ROS_INFO("[YoloObjectDetector] Start check for objects action.");
         }
 
-        boost::shared_ptr<const darknet_ros_msgs::CheckForObjectsGoal> imageActionPtr = checkForObjectsActionServer_->acceptNewGoal();
+        boost::shared_ptr<const elikos_msgs::CheckForObjectsGoal> imageActionPtr = checkForObjectsActionServer_->acceptNewGoal();
         sensor_msgs::Image imageAction = imageActionPtr->image;
 
         cv_bridge::CvImagePtr cam_image;

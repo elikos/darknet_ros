@@ -48,8 +48,7 @@ find_package(catkin REQUIRED
         rospy
         std_msgs
         actionlib
-        darknet_ros_msgs
-        detection_msgs
+        elikos_msgs
         image_transport
         nodelet
         )
@@ -69,8 +68,7 @@ catkin_package(
         actionlib
         rospy
         std_msgs
-        darknet_ros_msgs
-        detection_msgs
+        elikos_msgs
         image_transport
         nodelet
         DEPENDS

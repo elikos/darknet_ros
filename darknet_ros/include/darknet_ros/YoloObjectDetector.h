@@ -31,13 +31,11 @@
 #include <opencv2/objdetect/objdetect.hpp>
 #include <cv_bridge/cv_bridge.h>
 
-// darknet_ros_msgs
-#include <darknet_ros_msgs/BoundingBoxes.h>
-#include <darknet_ros_msgs/BoundingBox.h>
-#include <darknet_ros_msgs/CheckForObjectsAction.h>
-
-//detection_msg
-#include <detection_msgs/Positions_and_probabilities.h>
+// elikos_msgs
+#include <elikos_msgs/BoundingBoxArray.h>
+#include <elikos_msgs/BoundingBox.h>
+#include <elikos_msgs/CheckForObjectsAction.h>
+#include <elikos_msgs/PositionAndProbabilityArray.h>
 #include <geometry_msgs/Point32.h>
 
 namespace darknet_ros {
@@ -152,7 +150,7 @@ namespace darknet_ros {
         bool publishDetectionImage(const cv::Mat& detectionImage);
 
         //! Typedefs.
-        typedef actionlib::SimpleActionServer<darknet_ros_msgs::CheckForObjectsAction> CheckForObjectsActionServer;
+        typedef actionlib::SimpleActionServer<elikos_msgs::CheckForObjectsAction> CheckForObjectsActionServer;
         typedef std::shared_ptr<CheckForObjectsActionServer> CheckForObjectsActionServerPtr;
 
         //! ROS node handle.
@@ -178,8 +176,8 @@ namespace darknet_ros {
         std::vector< std::vector<RosBox_> > rosBoxes_;
         std::vector<int> rosBoxCounter_;
         std::vector<cv::Scalar> rosBoxColors_;
-        darknet_ros_msgs::BoundingBoxes boundingBoxesResults_;
-        detection_msgs::Positions_and_probabilities positionsAndProbabilities_;
+        elikos_msgs::BoundingBoxArray boundingBoxesResults_;
+        elikos_msgs::PositionAndProbabilityArray positionsAndProbabilities_;
         RosBox_* boxes_;
 
         //! Camera related parameters.
