@@ -36,6 +36,10 @@
 #include <darknet_ros_msgs/BoundingBox.h>
 #include <darknet_ros_msgs/CheckForObjectsAction.h>
 
+//detection_msg
+#include <detection_msgs/Positions_and_probabilities.h>
+#include <geometry_msgs/Point32.h>
+
 namespace darknet_ros {
 
 //! Bounding box of the detected object.
@@ -168,12 +172,14 @@ namespace darknet_ros {
         image_transport::Subscriber imageSubscriber_;
         ros::Publisher objectPublisher_;
         ros::Publisher boundingBoxesPublisher_;
+        ros::Publisher positionsAndProbabilitiesPublisher_;
 
         //! Detected objects.
         std::vector< std::vector<RosBox_> > rosBoxes_;
         std::vector<int> rosBoxCounter_;
         std::vector<cv::Scalar> rosBoxColors_;
         darknet_ros_msgs::BoundingBoxes boundingBoxesResults_;
+        detection_msgs::Positions_and_probabilities positionsAndProbabilities_;
         RosBox_* boxes_;
 
         //! Camera related parameters.

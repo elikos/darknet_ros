@@ -21,6 +21,11 @@ publishers:
     queue_size: 1
     latch: false
 
+  positions_and_probabilities:
+    topic: /darknet_ros/positions_and_probabilities
+    queue_size: 1
+    latch: false
+
   detection_image:
     topic: /darknet_ros/detection_image
     queue_size: 1
