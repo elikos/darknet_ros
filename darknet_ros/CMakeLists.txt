@@ -8,7 +8,7 @@ set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 find_path(DARKNET_PATH
         NAMES "README.md"
         HINTS "${CMAKE_CURRENT_SOURCE_DIR}/../darknet/")
-message("Darknet path dir = ${DARKNET_PATH}")
+message(STATUS "Darknet path dir = ${DARKNET_PATH}")
 add_definitions(-DDARKNET_FILE_PATH="${DARKNET_PATH}")
 
 # Find CUDA
